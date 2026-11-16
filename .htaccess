@@ -20,6 +20,8 @@ Options -Indexes
   RewriteEngine On
   RewriteRule ^data/ - [F,L]
   RewriteRule ^data$  - [F,L]
+  RewriteRule ^player/?$ play.php [L]
+  RewriteRule ^pdf-viewer/?$ pdf.php [L]
 </IfModule>
 
 # ── PHP settings (no display_errors, hide version) ───────────────
