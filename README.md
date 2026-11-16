@@ -18,9 +18,9 @@ Pass: Admin@Rozgar2024
 ## Deploy
 ### Vercel
 
-Import this repository into Vercel. The `Dockerfile.vercel` entrypoint selects Vercel's
-Container runtime (including when another framework is detected); it serves HTTP on
-the default port 80. See [VERCEL_DEPLOY.txt](./VERCEL_DEPLOY.txt) for details.
+Import this repository into Vercel. `vercel.json` selects the Container runtime and
+`Dockerfile.vercel` provides the app image, even if another framework was previously
+selected for the project. See [VERCEL_DEPLOY.txt](./VERCEL_DEPLOY.txt) for details.
 
 ### Other PHP hosting
 

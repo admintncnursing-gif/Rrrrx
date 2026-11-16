@@ -2,12 +2,13 @@ Vercel Deployment
 
 1. Push this repository to GitHub.
 2. In Vercel, select Add New > Project and import the repository.
-3. Keep the project root set to the repository root. `Dockerfile.vercel` selects
-   Vercel's Container runtime, even if another framework is detected.
+3. Keep the project root set to the repository root. `vercel.json` selects Vercel's
+   Container framework, and `Dockerfile.vercel` provides the app image. This overrides
+   a previously selected framework preset.
 4. Deploy. The Apache container listens on port 80, Vercel's default container port.
 
-No build command, output directory, or `vercel.json` is required. The regular
-`Dockerfile` remains available for non-Vercel container hosts; keep it aligned with
+No custom build command or output directory is required. The regular `Dockerfile`
+remains available for non-Vercel container hosts; keep it aligned with
 `Dockerfile.vercel` when changing the container setup.
 
 Storage note
