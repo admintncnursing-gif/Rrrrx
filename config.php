@@ -1,12 +1,10 @@
 <?php
 define('API_BASE',    'https://rozgarapinew.teachx.in');
-define('APP_NAME',    'Rozgar Learning');
-define('APP_TAGLINE', 'ROZGAR with Ankit · Official Portal');
+define('APP_NAME',    'ZXKAI');
+define('APP_TAGLINE', 'ZXKAI · Learning Portal');
 define('APP_VERSION', '4.0');
 define('TG_CHANNEL',  'https://t.me/+rmB8RrKIm8A0NGVl');
-define('TG_NAME',     'Dark Universe');
-define('WA_CHANNEL',  'https://whatsapp.com/channel/0029VbAvDSX0QeahEg4kkE3U');
-define('WA_NAME',     'Rozgar with Ankit');
+define('TG_NAME',     'ZXKAI');
 define('ADMIN_PASS',  'Admin@Rozgar2024');
 define('ADMIN_USER',  'admin');
 define('MASTER_TOKEN',  'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjY0MDUxMzYiLCJ0aW1lc3RhbXAiOjE3ODA3MzU3NzYsIml2X3ZlciI6MTk5LCJzZXNzaW9uIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKSVV6STFOaUo5LmV5SnBaQ0k2SWpZME1EVXhNellpTENKbGJXRnBiQ0k2SW1abGVXNXNaV0Z5YmpnMk4wQm5iV0ZwYkM1amIyMGlMQ0p1WVcxbElqb2lRV0ZyWVhOb0lGTnBibWhoSWl3aWRHVnVZVzUwVkhsd1pTSTZJblZ6WlhJaUxDSjBaVzVoYm5ST1lXMWxJam9pY205NloyRnlYMlJpSWl3aWRHVnVZVzUwU1dRaU9pSWlMQ0prYVhOd2IzTmhZbXhsSWpwbVlXeHpaWDAuanMya2FUQ19jRk9kYzdZZjdFcHJNS0c1TFpjMjViTXhsZ1NpZXh6UkNXRSJ9.eoJOdPiGw76DpYd5v0cfQc4BRYSx8GdT7p6cusdTeec');
@@ -56,7 +54,7 @@ function auto_login(): void {
     if (empty($_SESSION['token'])) {
         $_SESSION['token'] = MASTER_TOKEN;
         $_SESSION['userid'] = MASTER_USERID;
-        $_SESSION['phone'] = 'Rozgar Student';
+        $_SESSION['phone'] = 'ZXKAI Student';
         $_SESSION['login_type'] = 'auto';
     }
 }

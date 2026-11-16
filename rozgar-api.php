@@ -1,6 +1,6 @@
 <?php
 /**
- * Rozgar Learning — Custom Internal REST API
+ * ZXKAI — Custom Internal REST API
  * ──────────────────────────────────────────
  * Ye PHP khud ka API server hai jo:
  * 1. External teachx.in API ko proxy karta hai

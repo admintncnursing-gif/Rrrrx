@@ -1,6 +1,6 @@
 <?php
 /**
- * DARK UNIVERSE — Splash Screen
+ * ZXKAI — Splash Screen
  * Include at the very start of <body> on index.php / batches.php
  * Fades out automatically after 2.2s
  */
@@ -13,15 +13,15 @@
       <div class="spl-ring spl-r1"></div>
       <div class="spl-ring spl-r2"></div>
       <div class="spl-ring spl-r3"></div>
-      <div class="spl-icon"><i class="fas fa-graduation-cap"></i></div>
+      <img class="spl-icon" src="/zxkai-logo.svg" alt="ZXKAI">
     </div>
-    <div class="spl-name">𝑫𝑨𝑹𝑲 𝑼𝑵𝑰𝑽𝑬𝑹𝑺𝑬</div>
+    <div class="spl-name">ZXKAI</div>
     <div class="spl-tagline">OFFICIAL LEARNING PORTAL</div>
     <div class="spl-bar-wrap">
       <div class="spl-bar"><div class="spl-fill" id="spl-fill"></div></div>
       <div class="spl-pct" id="spl-pct">0%</div>
     </div>
-    <div class="spl-powered">Powered by <span>Rozgar with Ankit</span></div>
+    <div class="spl-powered">LEARN SMARTER. GO FURTHER.</div>
   </div>
 </div>
 
@@ -39,8 +39,8 @@
 .spl-r2{width:80%;height:80%;border-top-color:rgba(6,182,212,.7);border-left-color:rgba(6,182,212,.2);animation-duration:2s;animation-direction:reverse}
 .spl-r3{width:60%;height:60%;border-bottom-color:rgba(167,139,250,.6);border-right-color:rgba(167,139,250,.2);animation-duration:1.5s}
 @keyframes rotateRing{to{transform:rotate(360deg)}}
-.spl-icon{width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,#7c3aed,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;box-shadow:0 0 40px rgba(124,58,237,.6),0 0 80px rgba(124,58,237,.2);animation:iconPulse 2s ease-in-out infinite}
-@keyframes iconPulse{0%,100%{box-shadow:0 0 30px rgba(124,58,237,.6),0 0 60px rgba(124,58,237,.15)}50%{box-shadow:0 0 50px rgba(124,58,237,.9),0 0 100px rgba(124,58,237,.3)}}
+.spl-icon{width:76px;height:76px;display:block;filter:drop-shadow(0 0 24px rgba(124,58,237,.5));animation:iconPulse 2s ease-in-out infinite}
+@keyframes iconPulse{0%,100%{filter:drop-shadow(0 0 18px rgba(124,58,237,.45))}50%{filter:drop-shadow(0 0 30px rgba(34,211,238,.55))}}
 .spl-name{font-size:26px;font-weight:900;letter-spacing:.05em;text-align:center;background:linear-gradient(135deg,#fff 30%,#a78bfa 60%,#22d3ee 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:nameIn .8s cubic-bezier(.34,1.25,.64,1) both;animation-delay:.3s;margin-bottom:6px}
 @keyframes nameIn{from{opacity:0;transform:translateY(16px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
 .spl-tagline{font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.22em;color:#475569;animation:nameIn .6s ease both;animation-delay:.6s;margin-bottom:36px}
@@ -48,8 +48,7 @@
 .spl-bar{width:100%;height:3px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
 .spl-fill{height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#06b6d4,#a78bfa);border-radius:3px;transition:width .05s linear;box-shadow:0 0 10px rgba(124,58,237,.8)}
 .spl-pct{font-size:10px;font-family:'JetBrains Mono',monospace;color:#475569;letter-spacing:.1em}
-.spl-powered{font-size:10px;color:#2a2a40;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-top:40px;animation:nameIn .5s ease both;animation-delay:1s}
-.spl-powered span{color:#7c3aed}
+.spl-powered{font-size:10px;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-top:40px;animation:nameIn .5s ease both;animation-delay:1s}
 </style>
 <script>
 (function(){

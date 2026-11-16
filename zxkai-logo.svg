@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">ZXKAI</title>
+  <defs>
+    <linearGradient id="brand" x1="18" y1="14" x2="112" y2="114" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="34" fill="#0b0b16" stroke="url(#brand)" stroke-width="3"/>
+  <path d="M38 40h52L40 88h50" fill="none" stroke="url(#brand)" stroke-linecap="round" stroke-linejoin="round" stroke-width="11"/>
+  <path d="M31 99h66" fill="none" stroke="#f8fafc" stroke-linecap="round" stroke-opacity=".72" stroke-width="3"/>
+  <circle cx="94" cy="33" r="5" fill="#f8fafc"/>
+</svg>

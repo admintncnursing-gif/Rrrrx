@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: dashboard.php');
             exit;
         } else {
-            $error = 'Wrong credentials. Rozgar Learning ka sahi ID/Password daalo.';
+            $error = 'Wrong credentials. Apna ZXKAI account sahi se check karo.';
         }
     }
 }
@@ -90,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="icon" href="/zxkai-logo.svg" type="image/svg+xml">
 <title>Login · <?=APP_NAME?></title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -105,7 +106,7 @@ body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;jus
 .wrap{width:100%;max-width:390px;position:relative;z-index:1}
 /* Logo */
 .logo-sec{text-align:center;margin-bottom:36px}
-.logo-ico{width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,var(--p),var(--g));display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;margin:0 auto 16px;box-shadow:0 0 40px rgba(124,58,237,.4)}
+.logo-ico{display:block;width:72px;height:72px;object-fit:contain;margin:0 auto 16px;filter:drop-shadow(0 0 20px rgba(124,58,237,.35))}
 .logo-sec h1{font-size:24px;font-weight:900;margin-bottom:6px}
 .logo-sec p{font-size:13px;color:var(--t2);line-height:1.5}
 /* Card */
@@ -142,15 +143,15 @@ footer{font-size:10px;color:var(--t3);text-align:center;font-family:'JetBrains M
 <div class="gbg"></div>
 <div class="wrap">
   <div class="logo-sec">
-    <div class="logo-ico"><i class="fas fa-graduation-cap"></i></div>
+    <img class="logo-ico" src="/zxkai-logo.svg" alt="ZXKAI logo">
     <h1><?=APP_NAME?></h1>
-    <p>ROZGAR with Ankit ki Official<br>Learning Platform</p>
+    <p>Your learning space.<br>Everything in one place.</p>
   </div>
 
   <div class="info-box">
     <h4><i class="fas fa-circle-info"></i> Login Kaise Karen?</h4>
     <p>
-      <i class="fas fa-check"></i> Rozgar Learning ki official website<br>
+      <i class="fas fa-check"></i> Sign in with your learning account<br>
       <i class="fas fa-check"></i> Apni registered mobile number daalo<br>
       <i class="fas fa-check"></i> Aur apna password daalo — bas!
     </p>
@@ -158,7 +159,7 @@ footer{font-size:10px;color:var(--t3);text-align:center;font-family:'JetBrains M
 
   <div class="card">
     <div class="card-ttl">Welcome Back 👋</div>
-    <div class="card-sub">ROZGAR with Ankit ID se login karo &amp; apne sare batches dekho</div>
+    <div class="card-sub">Apne ZXKAI account se sign in karke courses dekho.</div>
 
     <?php if($error): ?>
     <div class="err"><i class="fas fa-triangle-exclamation"></i><?=htmlspecialchars($error)?></div>

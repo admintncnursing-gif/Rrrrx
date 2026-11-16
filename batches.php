@@ -11,7 +11,8 @@ send_security_headers();
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#020208">
-<title>𝑫𝑨𝑹𝑲 𝑼𝑵𝑰𝑽𝑬𝑹𝑺𝑬</title>
+<link rel="icon" href="/zxkai-logo.svg" type="image/svg+xml">
+<title>ZXKAI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -39,7 +40,7 @@ body{-webkit-user-select:none;user-select:none}
 
 /* ── Topbar ── */
 .tb{flex-shrink:0;height:64px;display:flex;align-items:center;padding:0 18px;gap:13px;background:rgba(2,2,8,.92);border-bottom:1px solid rgba(124,58,237,.12);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:100;position:relative}
-.tb-logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0;box-shadow:0 0 24px rgba(124,58,237,.45)}
+.tb-logo{width:42px;height:42px;border-radius:14px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 12px rgba(124,58,237,.35))}
 .tb-info{flex:1;min-width:0}
 .tb-title{font-size:16px;font-weight:900;letter-spacing:-.01em;line-height:1}
 .tb-sub{font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.14em;margin-top:2px}
@@ -140,14 +141,13 @@ body{-webkit-user-select:none;user-select:none}
 <div id="app">
   <!-- Topbar -->
   <div class="tb">
-    <div class="tb-logo"><i class="fas fa-graduation-cap"></i></div>
+    <img class="tb-logo" src="/zxkai-logo.svg" alt="ZXKAI logo">
     <div class="tb-info">
-      <div class="tb-title">𝑫𝑨𝑹𝑲 𝑼𝑵𝑰𝑽𝑬𝑹𝑺𝑬</div>
-      <div class="tb-sub">OFFICIAL LEARNING PORTAL</div>
+      <div class="tb-title">ZXKAI</div>
+      <div class="tb-sub">LEARNING PORTAL</div>
     </div>
     <div class="tb-act">
       <div class="ib" onclick="fetchBatches()"><i class="fas fa-rotate-right"></i></div>
-      <div class="ib" style="position:relative" onclick="wapJoin&&wapJoin()"><i class="fab fa-whatsapp" style="color:#4ade80"></i></div>
     </div>
   </div>
 
@@ -204,15 +204,12 @@ body{-webkit-user-select:none;user-select:none}
   <nav class="bnav">
     <div class="ni on" onclick="navTo('batches.php')"><i class="fas fa-home"></i><span>HOME</span></div>
     <div class="ni" onclick="navTo('dashboard.php')"><i class="fas fa-th-large"></i><span>EXPLORE</span></div>
-    <div class="ni" onclick="wapJoin&&wapJoin()"><i class="fab fa-whatsapp" style="color:#4ade80"></i><span>CHANNEL</span></div>
     <div class="ni" onclick="navTo('logout.php')"><i class="fas fa-sign-out-alt"></i><span>LOGOUT</span></div>
   </nav>
 </div>
 
 <!-- Toast -->
 <div class="toast" id="toast"><i class="fas fa-circle-info" style="color:var(--p2)"></i><span id="tmsg"></span></div>
-
-<?php include 'wa-popup.php'; ?>
 
 <script>
 /* ── Security ── */
@@ -287,11 +284,11 @@ function render(list){
   if(!list.length){el.innerHTML='<div class="empty-wrap"><i class="fas fa-box-open"></i><h3>Koi batch nahi mila</h3><p>Search query change karo</p></div>';return;}
   el.innerHTML=list.map((b,i)=>{
     const fv=_sv.includes(String(b.id));
-    const th=b.course_thumbnail||'https://placehold.co/640x280/0b0b12/7c3aed?text='+encodeURIComponent(b.course_name||'Batch');
+    const th=b.course_thumbnail||'https://placehold.co/640x280/0b0b12/7c3aed?text='+encodeURIComponent(b.course_name||'ZXKAI');
     const pr=b.price&&b.price>0?'₹'+b.price:'FREE';
     return`<div class="bcard" style="animation-delay:${i*.055}s">
       <div class="bthumb">
-        <img src="${H(th)}" loading="${i<3?'eager':'lazy'}" onerror="this.src='https://placehold.co/640x280/0b0b12/7c3aed?text=Dark+Universe'">
+        <img src="${H(th)}" loading="${i<3?'eager':'lazy'}" onerror="this.src='https://placehold.co/640x280/0b0b12/7c3aed?text=ZXKAI'">
         <div class="boverlay"></div>
         <button class="bfav${fv?' on':''}" onclick="event.stopPropagation();toggleSave('${b.id}',this)">
           <i class="${fv?'fas':'far'} fa-heart"></i>

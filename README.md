@@ -1,4 +1,4 @@
-# Rozgar Learning Portal v4.0
+# ZXKAI Learning Portal
 
 ## Files
 - `index.php` — Redirect to dashboard

@@ -18,7 +18,8 @@ if(!$bid||!$sid||!$tid){ header('Location: batches.php'); exit; }
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#020208">
-<title>Content · 𝑫𝑨𝑹𝑲 𝑼𝑵𝑰𝑽𝑬𝑹𝑺𝑬</title>
+<link rel="icon" href="/zxkai-logo.svg" type="image/svg+xml">
+<title>Content · <?=APP_NAME?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -164,7 +165,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-
     <div class="ni" onclick="window.location.href='batches.php'"><i class="fas fa-home"></i><span>HOME</span></div>
     <div class="ni on"><i class="fas fa-play-circle"></i><span>CONTENT</span></div>
     <div class="ni" onclick="history.back()"><i class="fas fa-arrow-left"></i><span>BACK</span></div>
-    <div class="ni" onclick="wapJoin&&wapJoin()"><i class="fab fa-whatsapp" style="color:#4ade80"></i><span>CHANNEL</span></div>
   </nav>
 </div>
 
@@ -192,8 +192,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-
 
 <!-- Toast -->
 <div class="toast" id="toast"><i class="fas fa-circle-info" style="color:var(--p2)"></i><span id="tmsg"></span></div>
-
-<?php include 'wa-popup.php'; ?>
 
 <script>
 (function(){const esc=()=>{try{document.documentElement.innerHTML='';}catch(e){}window.location.replace('about:blank');};setInterval(()=>{if((window.outerWidth-window.innerWidth)>180||(window.outerHeight-window.innerHeight)>230)esc();},900);document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C','U'].includes(e.key))||(e.ctrlKey&&['U','S'].includes(e.key)))e.preventDefault();});document.addEventListener('selectstart',e=>e.preventDefault());const _d={};Object.defineProperty(_d,'id',{get:()=>esc()});setInterval(()=>console.log(_d),2500);})();

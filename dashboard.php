@@ -14,6 +14,7 @@ $_SESSION['nonce'] = $nonce;
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link rel="icon" href="/zxkai-logo.svg" type="image/svg+xml">
 <title><?=APP_NAME?> · Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -31,7 +32,7 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
 /* ── Top Bar ── */
 .topbar{flex-shrink:0;height:58px;background:rgba(3,3,7,0.97);border-bottom:1px solid rgba(124,58,237,0.15);display:flex;align-items:center;padding:0 16px;gap:12px;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .logo-area{display:flex;align-items:center;gap:10px;flex:1;cursor:pointer}
-.logo-icon{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,0.4)}
+.logo-icon{width:36px;height:36px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(124,58,237,.35))}
 .logo-txt h1{font-size:15px;font-weight:800;color:#fff;line-height:1.1}
 .logo-txt p{font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.12em}
 .hdr-right{display:flex;align-items:center;gap:8px}
@@ -189,13 +190,12 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
 /* ── Toast ── */
 .toast{position:fixed;top:68px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--c2);border:1px solid rgba(124,58,237,.3);color:#fff;padding:10px 20px;border-radius:50px;font-size:12px;font-weight:600;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-/* WhatsApp popup styles are in wa-popup.php */
 /* ── Welcome Popup ── */
 .wpop{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;padding:16px;background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
 .wpop.hide{display:none}
 .wbox{background:var(--c1);border:1px solid rgba(124,58,237,.25);border-radius:22px;width:100%;padding:28px 22px;animation:slideUp .35s cubic-bezier(.34,1.56,.64,1)}
 @keyframes slideUp{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}
-.w-logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--p),var(--g));display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 16px;box-shadow:0 8px 30px rgba(124,58,237,.35)}
+.w-logo{display:block;width:72px;height:72px;object-fit:contain;margin:0 auto 16px;filter:drop-shadow(0 0 18px rgba(124,58,237,.4))}
 .w-ttl{font-size:21px;font-weight:900;text-align:center;margin-bottom:6px}
 .w-sub{font-size:13px;color:var(--t2);text-align:center;line-height:1.6;margin-bottom:6px}
 .w-highlight{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:12px;padding:12px 16px;margin:14px 0;text-align:left}
@@ -212,15 +212,15 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
 <!-- ════════════════ WELCOME POPUP ════════════════ -->
 <div id="wpop" class="wpop">
   <div class="wbox">
-    <div class="w-logo"><i class="fas fa-graduation-cap"></i></div>
+    <img class="w-logo" src="/zxkai-logo.svg" alt="ZXKAI logo">
     <div class="w-ttl"><?=APP_NAME?></div>
-    <div class="w-sub">ROZGAR with Ankit ki Official Learning Platform</div>
+    <div class="w-sub">Your learning space. Everything in one place.</div>
     <div class="w-highlight">
-      <p><i class="fas fa-check-circle"></i> Apni Rozgar ID se login karo</p>
-      <p><i class="fas fa-check-circle"></i> Saare Batches Lifetime Access</p>
-      <p><i class="fas fa-check-circle"></i> Videos, Notes & More</p>
+      <p><i class="fas fa-check-circle"></i> Browse your enrolled courses</p>
+      <p><i class="fas fa-check-circle"></i> Continue lessons and notes</p>
+      <p><i class="fas fa-check-circle"></i> Save courses for later</p>
     </div>
-    <p style="font-size:11px;color:var(--t3);text-align:center">rozgarlearning.com ki ID &amp; Password se login karo ya Skip karo</p>
+    <p style="font-size:11px;color:var(--t3);text-align:center">Sign in with your learning account or continue.</p>
     <div class="w-btns">
       <button class="w-login" onclick="goToLogin()"><i class="fas fa-sign-in-alt" style="margin-right:6px"></i>Login</button>
       <button class="w-start" onclick="closeWelcome()"><i class="fas fa-rocket"></i>Start Now</button>
@@ -228,14 +228,12 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
   </div>
 </div>
 
-<!-- ════════════════ WHATSAPP POPUP (via wa-popup.php) ════════════════ -->
-
 <!-- ════════════════ APP SHELL ════════════════ -->
 <div id="app">
   <!-- Topbar -->
   <div class="topbar">
     <div class="logo-area" onclick="goHome()">
-      <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+      <img class="logo-icon" src="/zxkai-logo.svg" alt="">
       <div class="logo-txt">
         <h1><?=APP_NAME?></h1>
         <p>OFFICIAL PORTAL · SECURE</p>
@@ -265,7 +263,7 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
         <div class="hero-badge"><span>● LIVE</span></div>
         <div class="hero-greet">Welcome Back</div>
         <div class="hero-name">Hey, <b id="g-name">Student</b> 👋</div>
-        <div class="hero-sub" id="g-uid">Rozgar Learning Portal</div>
+        <div class="hero-sub" id="g-uid">ZXKAI Learning Portal</div>
       </div>
       <div class="stats">
         <div class="scard blue">
@@ -276,14 +274,6 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
           <div class="si teal"><i class="fas fa-heart"></i></div>
           <div><div class="sv" id="st-saved">0</div><div class="sl">SAVED</div></div>
         </div>
-      </div>
-      <div class="ann" onclick="joinWA()" style="border-color:rgba(37,211,102,.25)">
-        <div class="ann-ico" style="background:rgba(37,211,102,.12);color:#4ade80;border-color:rgba(37,211,102,.2)"><i class="fab fa-whatsapp"></i></div>
-        <div class="ann-txt">
-          <h4>Rozgar with Ankit</h4>
-          <p>WHATSAPP CHANNEL · FREE MATERIAL</p>
-        </div>
-        <div class="ann-chip" style="background:rgba(37,211,102,.15);color:#4ade80;border-color:rgba(37,211,102,.3)">JOIN</div>
       </div>
       <div class="srch">
         <i class="fas fa-magnifying-glass"></i>
@@ -332,7 +322,7 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
       <div class="prof-hero">
         <div class="prof-av"><img id="p-av" src="" alt=""></div>
         <div class="prof-name" id="p-name">Student</div>
-        <div class="prof-uid">Rozgar Learning</div>
+        <div class="prof-uid">ZXKAI Learning</div>
         <div class="prof-ver"><?=APP_NAME?> v<?=APP_VERSION?> · SECURE PORTAL</div>
       </div>
       <div class="alist">
@@ -344,11 +334,6 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
         <div class="aitem" onclick="navClick('saved')">
           <div class="aico g"><i class="fas fa-heart"></i></div>
           <span class="albl">Saved Batches</span>
-          <i class="fas fa-chevron-right aarr"></i>
-        </div>
-        <div class="aitem" onclick="joinWA()">
-          <div class="aico" style="background:rgba(37,211,102,.1);color:#4ade80;border:1px solid rgba(37,211,102,.2)"><i class="fab fa-whatsapp"></i></div>
-          <span class="albl">Rozgar WhatsApp Channel</span>
           <i class="fas fa-chevron-right aarr"></i>
         </div>
         <div class="aitem" onclick="goToLogin()">
@@ -432,7 +417,7 @@ body{color:var(--t1);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color
 // ── API (obfuscated, server-side proxy) ─────────────────────────
 function _q(ep){return btoa(ep).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 
-// ── Custom Rozgar API Client ──────────────────────────────────────
+// ── Custom ZXKAI API Client ───────────────────────────────────────
 // Uses rozgar-api.php (our own PHP server) — no sensitive data in browser
 async function rApi(action,params={},retries=4){
   for(let i=0;i<retries;i++){
@@ -488,39 +473,28 @@ const S={
 
 // ── Init ─────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
-  const av='https://api.dicebear.com/7.x/bottts-neutral/svg?seed=rozgar&baseColor=7c3aed';
+  const av='https://api.dicebear.com/7.x/bottts-neutral/svg?seed=zxkai&baseColor=7c3aed';
   document.getElementById('hdr-av').src=av;
   document.getElementById('p-av').src=av;
-  document.getElementById('p-name').textContent='Rozgar Student';
+  document.getElementById('p-name').textContent='ZXKAI Student';
   document.getElementById('g-name').textContent='Student';
-  document.getElementById('g-uid').textContent='Rozgar with Ankit · Official Portal';
+  document.getElementById('g-uid').textContent='<?=APP_TAGLINE?>';
   updSaved();
   fetchBatches();
   // Show welcome popup after 300ms
   setTimeout(()=>{
-    const seen=sessionStorage.getItem('rz_welcome');
-    if(!seen){document.getElementById('wpop').style.display='flex';sessionStorage.setItem('rz_welcome','1');}
-    // WhatsApp popup handled by wa-popup.php
+    const seen=sessionStorage.getItem('zxkai_welcome');
+    if(!seen){document.getElementById('wpop').style.display='flex';sessionStorage.setItem('zxkai_welcome','1');}
   },300);
 });
 
 // ── Welcome Popup ────────────────────────────────────────────────
 function closeWelcome(){
   document.getElementById('wpop').style.display='none';
-  // WhatsApp popup is shown by wa-popup.php automatically
 }
 function goToLogin(){
   document.getElementById('wpop').style.display='none';
   window.location.href='login.php';
-}
-
-// ── WhatsApp Popup — handled by wa-popup.php (included before </body>) ──
-function showWA(){ /* auto-shown by wa-popup.php after 1.5s */ }
-function closeWA(){ if(typeof waClose==='function') waClose(); }
-function joinTG(){ joinWA(); }
-function joinWA(){
-  window.open('<?=WA_CHANNEL?>','_blank');
-  closeWA();
 }
 
 // ── Fetch Batches ────────────────────────────────────────────────
@@ -759,6 +733,5 @@ function showAbout(){
 function H(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function J(s){return String(s||'').replace(/'/g,"\\'").replace(/\\/g,'\\\\');}
 </script>
-<?php include 'wa-popup.php'; ?>
 </body>
 </html>
