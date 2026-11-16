@@ -1,11 +1,88 @@
 <?php
-// ── Server-side Video Proxy ───────────────────────────────────────
-// Fetches video URL server-side, decrypts, and redirects.
+// ── Video player and server-side video lookup ────────────────────
 // AES key NEVER touches the browser.
 require_once 'config.php';
 if(session_status()===PHP_SESSION_NONE) session_start();
 auto_login();
 send_security_headers();
+
+$mediaUrl = $_GET['url'] ?? '';
+if(!is_string($mediaUrl)){
+    http_response_code(400);
+    die('Invalid video URL');
+}
+$mediaUrl = trim($mediaUrl);
+if($mediaUrl !== ''){
+    $mediaParts = parse_url($mediaUrl);
+    if(!$mediaParts || strtolower($mediaParts['scheme'] ?? '') !== 'https' || empty($mediaParts['host'])){
+        http_response_code(400);
+        die('Invalid video URL');
+    }
+
+    $sourceJson = json_encode($mediaUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    if($sourceJson === false){
+        http_response_code(400);
+        die('Invalid video URL');
+    }
+
+    $isHls = strtolower(pathinfo($mediaParts['path'] ?? '', PATHINFO_EXTENSION)) === 'm3u8';
+    header('Content-Type: text/html; charset=utf-8');
+    ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Video Player</title>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:#08080d;color:#f1f5f9;font-family:system-ui,sans-serif}
+body{display:grid;place-items:center}
+main{width:min(100%,1000px);padding:16px}
+video{display:block;width:100%;max-height:calc(100dvh - 32px);background:#000;border-radius:12px}
+#error{color:#fca5a5;text-align:center;padding:12px}
+</style>
+</head>
+<body>
+<main>
+<video id="video" controls playsinline preload="metadata"></video>
+<p id="error" hidden></p>
+</main>
+<?php if($isHls): ?>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+<?php endif; ?>
+<script>
+const source=<?=$sourceJson?>;
+const video=document.getElementById('video');
+const error=document.getElementById('error');
+function showError(message){error.textContent=message;error.hidden=false;}
+video.addEventListener('error',()=>showError('Unable to load this video. Check your connection and try again.'));
+<?php if($isHls): ?>
+if(video.canPlayType('application/vnd.apple.mpegurl')){
+  video.src=source;
+}else if(typeof Hls!=='undefined'&&Hls.isSupported()){
+  const hls=new Hls();
+  hls.loadSource(source);
+  hls.attachMedia(video);
+  hls.on(Hls.Events.ERROR,(_,data)=>{
+    if(data.fatal){
+      hls.destroy();
+      showError('Unable to load this video. Check your connection and try again.');
+    }
+  });
+}else{
+  showError('HLS playback is not supported by this browser.');
+}
+<?php else: ?>
+video.src=source;
+<?php endif; ?>
+</script>
+</body>
+</html>
+    <?php
+    exit;
+}
 
 $vid = intval($_GET['vid'] ?? 0);
 $bid = intval($_GET['bid'] ?? 0);
