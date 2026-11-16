@@ -6,17 +6,179 @@ if(session_status()===PHP_SESSION_NONE) session_start();
 auto_login();
 send_security_headers();
 
+function supported_media_url(string $url): bool {
+    $parts = parse_url($url);
+    if (!$parts || strtolower($parts['scheme'] ?? '') !== 'https' || empty($parts['host'])
+        || isset($parts['user']) || isset($parts['pass'])
+        || (isset($parts['port']) && $parts['port'] !== 443)) {
+        return false;
+    }
+
+    $host = strtolower(rtrim($parts['host'], '.'));
+    foreach (['appx.co.in', 'classx.co.in', 'teachx.in'] as $domain) {
+        if ($host === $domain || str_ends_with($host, '.'.$domain)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function resolve_media_redirect(string $base, string $location): string {
+    if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $location)) {
+        return $location;
+    }
+
+    $parts = parse_url($base);
+    if (!$parts || empty($parts['host'])) {
+        return '';
+    }
+    $origin = 'https://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+
+    if (str_starts_with($location, '//')) {
+        return 'https:'.$location;
+    }
+    if (str_starts_with($location, '/')) {
+        return $origin.$location;
+    }
+    if (str_starts_with($location, '?')) {
+        return $origin.($parts['path'] ?? '/').$location;
+    }
+    return $origin.rtrim(dirname($parts['path'] ?? '/'), '/').'/'.$location;
+}
+
+function send_media_headers(array $headers, int $status, string $url): void {
+    http_response_code($status ?: 502);
+    foreach (['content-length', 'content-range', 'accept-ranges', 'last-modified', 'etag'] as $name) {
+        if (isset($headers[$name])) {
+            header($name.': '.$headers[$name]);
+        }
+    }
+
+    $contentType = $headers['content-type'] ?? '';
+    if ($contentType === '' || strtolower(trim(explode(';', $contentType, 2)[0])) === 'application/octet-stream') {
+        $extension = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION));
+        if ($extension === 'mp4') {
+            $contentType = 'video/mp4';
+        }
+    }
+    if ($contentType !== '') {
+        header('Content-Type: '.$contentType);
+    }
+    header('Cache-Control: no-store');
+    header('X-Accel-Buffering: no');
+}
+
+function proxy_media(string $url): void {
+    set_time_limit(0);
+    $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+    if (!in_array($method, ['GET', 'HEAD'], true)) {
+        http_response_code(405);
+        header('Allow: GET, HEAD');
+        exit;
+    }
+
+    $requestHeaders = ['Accept: */*'];
+    $range = $_SERVER['HTTP_RANGE'] ?? '';
+    if (is_string($range) && preg_match('/^bytes=(?:\d+-\d*|-\d+)(?:,(?:\d+-\d*|-\d+))*$/D', $range)) {
+        $requestHeaders[] = 'Range: '.$range;
+    }
+    $ifRange = $_SERVER['HTTP_IF_RANGE'] ?? '';
+    if (is_string($ifRange) && $ifRange !== '' && !preg_match('/[\r\n]/', $ifRange)) {
+        $requestHeaders[] = 'If-Range: '.$ifRange;
+    }
+
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+    while (ob_get_level() > 0 && ob_end_flush()) {}
+    ob_implicit_flush(true);
+
+    for ($redirect = 0; $redirect <= 4; $redirect++) {
+        if (!supported_media_url($url)) {
+            http_response_code(403);
+            header('Content-Type: text/plain; charset=utf-8');
+            echo 'Unsupported media host';
+            exit;
+        }
+
+        $responseHeaders = [];
+        $responseStatus = 0;
+        $headersSent = false;
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => false,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 120,
+            CURLOPT_NOBODY => $method === 'HEAD',
+            CURLOPT_HTTPHEADER => $requestHeaders,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/124 Mobile Safari/537.36',
+            CURLOPT_HEADERFUNCTION => static function($handle, string $line) use (&$responseHeaders, &$responseStatus): int {
+                if (preg_match('/^HTTP\/\S+\s+(\d{3})/i', $line, $match)) {
+                    $responseStatus = (int)$match[1];
+                    $responseHeaders = [];
+                } elseif (($separator = strpos($line, ':')) !== false) {
+                    $name = strtolower(trim(substr($line, 0, $separator)));
+                    $responseHeaders[$name] = trim(substr($line, $separator + 1));
+                }
+                return strlen($line);
+            },
+            CURLOPT_WRITEFUNCTION => static function($handle, string $chunk) use (&$responseHeaders, &$headersSent, $url): int {
+                $status = (int)curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
+                if ($status >= 300 && $status < 400) {
+                    return 0;
+                }
+                if (!$headersSent) {
+                    send_media_headers($responseHeaders, $status, $url);
+                    $headersSent = true;
+                }
+                echo $chunk;
+                flush();
+                return strlen($chunk);
+            },
+        ]);
+
+        $success = curl_exec($ch);
+        $curlError = curl_error($ch);
+        $responseStatus = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE) ?: $responseStatus;
+        curl_close($ch);
+
+        if ($responseStatus >= 300 && $responseStatus < 400 && !$headersSent) {
+            $location = $responseHeaders['location'] ?? '';
+            if ($location !== '' && $redirect < 4) {
+                $url = resolve_media_redirect($url, $location);
+                continue;
+            }
+        }
+
+        if (!$headersSent) {
+            if ($success === false && $responseStatus === 0) {
+                http_response_code(502);
+                header('Content-Type: text/plain; charset=utf-8');
+                echo 'Unable to retrieve media'.($curlError ? ': '.$curlError : '');
+                exit;
+            }
+            send_media_headers($responseHeaders, $responseStatus, $url);
+        }
+        exit;
+    }
+}
+
 $mediaUrl = $_GET['url'] ?? '';
 if(!is_string($mediaUrl)){
     http_response_code(400);
     die('Invalid video URL');
 }
 $mediaUrl = trim($mediaUrl);
-if($mediaUrl !== ''){
+if($mediaUrl !== '' || ($_GET['stream'] ?? '') === '1'){
     $mediaParts = parse_url($mediaUrl);
-    if(!$mediaParts || strtolower($mediaParts['scheme'] ?? '') !== 'https' || empty($mediaParts['host'])){
+    if(!supported_media_url($mediaUrl) || !$mediaParts){
         http_response_code(400);
         die('Invalid video URL');
+    }
+
+    if(($_GET['stream'] ?? '') === '1'){
+        proxy_media($mediaUrl);
     }
 
     $sourceJson = json_encode($mediaUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
@@ -58,6 +220,12 @@ const video=document.getElementById('video');
 const error=document.getElementById('error');
 function showError(message){error.textContent=message;error.hidden=false;}
 video.addEventListener('error',()=>showError('Unable to load this video. Check your connection and try again.'));
+function proxiedSource(url){
+  const endpoint=new URL(window.location.href);
+  endpoint.searchParams.set('stream','1');
+  endpoint.searchParams.set('url',url);
+  return endpoint.toString();
+}
 <?php if($isHls): ?>
 if(video.canPlayType('application/vnd.apple.mpegurl')){
   video.src=source;
@@ -75,7 +243,7 @@ if(video.canPlayType('application/vnd.apple.mpegurl')){
   showError('HLS playback is not supported by this browser.');
 }
 <?php else: ?>
-video.src=source;
+video.src=proxiedSource(source);
 <?php endif; ?>
 </script>
 </body>
