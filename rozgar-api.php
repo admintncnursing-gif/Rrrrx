@@ -158,10 +158,15 @@ function respond(array $data): void {
         header('X-Cache: ' . ($data['_cache_hit'] ? 'HIT' : 'MISS'));
         unset($data['_cache_hit']);
     }
-    if (empty($data['data']) && empty($data['status'])) {
-        echo json_encode(['ok'=>false,'error'=>'No data returned from upstream','data'=>[]]);
+    if (!empty($data['_failed']) || (empty($data['data']) && empty($data['status']))) {
+        echo json_encode([
+            'ok'=>false,
+            'error'=>$data['error'] ?? 'No data returned from upstream',
+            'data'=>[],
+        ]);
         return;
     }
+    unset($data['_failed']);
     $data['ok'] = true;
     echo json_encode($data);
 }
@@ -192,7 +197,7 @@ function cached_api(string $endpoint, string $cache_key, int $ttl = 600): array 
     $result = upstream_fetch($endpoint);
 
     // 3. On upstream failure (429/5xx/network), serve stale cache silently
-    if ($result['_failed']) {
+    if ($result['_failed'] || (empty($result['data']) && empty($result['status']))) {
         if (file_exists($cacheFile)) {
             $raw = @file_get_contents($cacheFile);
             if ($raw) {
@@ -204,7 +209,12 @@ function cached_api(string $endpoint, string $cache_key, int $ttl = 600): array 
             }
         }
         // Absolutely no cache — return proper error
-        return ['ok'=>false,'data'=>[],'error'=>$result['error'],'_failed'=>true];
+        return [
+            'ok'=>false,
+            'data'=>[],
+            'error'=>$result['error'] ?? 'No data returned from upstream',
+            '_failed'=>true,
+        ];
     }
 
     // 4. Save valid data to cache
@@ -248,9 +258,13 @@ function upstream_fetch(string $endpoint): array {
     $curl_err  = curl_error($ch);
     curl_close($ch);
 
-    // Mark as failed on bad codes
-    if ($http_code === 429 || $http_code === 503 || $http_code === 502 || $http_code === 0) {
-        return ['_failed'=>true,'data'=>[],'error'=>'Upstream returned '.$http_code.($curl_err?' ('.$curl_err.')':'')];
+    // Any non-success response can be transient; let the caller try stale cache.
+    if ($http_code < 200 || $http_code >= 300) {
+        return [
+            '_failed'=>true,
+            'data'=>[],
+            'error'=>'Upstream returned HTTP '.$http_code.($curl_err?' ('.$curl_err.')':''),
+        ];
     }
 
     if ($response === false || empty($response)) {
