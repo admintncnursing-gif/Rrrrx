@@ -16,6 +16,6 @@ if(empty($u)){
     if(strpos($u,'http')!==0){ http_response_code(400); die('Invalid link'); }
 }
 
-$viewer='https://dark-rwa.vercel.app/pdf-viewer?url=';
+$viewer='/pdf-viewer?url=';
 header('Location: '.$viewer.urlencode($u));
 exit;

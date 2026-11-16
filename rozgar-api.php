@@ -298,7 +298,7 @@ function handle_video(int $vid, int $bid, string $q): void {
     $cacheFile = DATA_DIR . 'api_' . md5('vid_'.$vid.'_'.$bid) . '.json';
     if (!empty($d)) @file_put_contents($cacheFile, json_encode($result));
 
-    $player = 'https://dark-rwa.vercel.app/player?url=';
+    $player = '/player?url=';
 
     // YouTube
     if (!empty($d['video_id']) && empty($d['download_link'])) {
@@ -337,7 +337,7 @@ function handle_video(int $vid, int $bid, string $q): void {
  * Handle PDF — decrypt server-side, return viewer URL
  */
 function handle_pdf(string $enc): void {
-    $viewer = 'https://dark-rwa.vercel.app/pdf-viewer?url=';
+    $viewer = '/pdf-viewer?url=';
     $raw = urldecode($enc);
 
     if (strpos($raw, 'http') === 0) {
