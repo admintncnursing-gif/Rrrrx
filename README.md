@@ -16,4 +16,12 @@ User: admin
 Pass: Admin@Rozgar2024
 
 ## Deploy
-Upload all files to your PHP hosting. Done.
+### Vercel
+
+Import this repository into Vercel. Vercel detects the root `Dockerfile` and deploys
+the app with its Container runtime; the Dockerfile serves HTTP on the default port 80.
+See [VERCEL_DEPLOY.txt](./VERCEL_DEPLOY.txt) for details and storage limitations.
+
+### Other PHP hosting
+
+Upload all files to your PHP hosting.

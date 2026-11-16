@@ -1,0 +1,17 @@
+Vercel Deployment
+
+1. Push this repository to GitHub.
+2. In Vercel, select Add New > Project and import the repository.
+3. Keep the project root set to the repository root. Vercel detects the root
+   Dockerfile and selects the Container runtime automatically.
+4. Deploy. The Apache container listens on port 80, Vercel's default container port.
+
+No build command, output directory, or vercel.json is required.
+
+Storage note
+
+The app currently stores PHP sessions, API caches, rate-limit files, and login logs
+on the local filesystem. Vercel container files are not durable or shared between
+instances, so these files can be lost when an instance is replaced and may not be
+available to another instance. Configure external persistent storage before relying
+on durable login logs, shared caches, or sessions across multiple instances.
