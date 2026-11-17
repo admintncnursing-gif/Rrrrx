@@ -32,18 +32,73 @@ function resolve_media_redirect(string $base, string $location): string {
     if (!$parts || empty($parts['host'])) {
         return '';
     }
-    $origin = 'https://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+    $scheme = $parts['scheme'] ?? 'https';
+    $origin = $scheme.'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
 
     if (str_starts_with($location, '//')) {
-        return 'https:'.$location;
+        return $scheme.':'.$location;
     }
-    if (str_starts_with($location, '/')) {
-        return $origin.$location;
+
+    $reference = parse_url($location);
+    $path = $reference['path'] ?? '';
+    if ($path === '') {
+        $path = $parts['path'] ?? '/';
+    } elseif (!str_starts_with($path, '/')) {
+        $path = rtrim(dirname($parts['path'] ?? '/'), '/').'/'.$path;
     }
-    if (str_starts_with($location, '?')) {
-        return $origin.($parts['path'] ?? '/').$location;
+
+    $segments = [];
+    foreach (explode('/', $path) as $segment) {
+        if ($segment === '..') {
+            array_pop($segments);
+        } elseif ($segment !== '.' && !($segment === '' && !$segments)) {
+            $segments[] = $segment;
+        }
     }
-    return $origin.rtrim(dirname($parts['path'] ?? '/'), '/').'/'.$location;
+    $path = '/'.implode('/', $segments);
+    if (str_ends_with($path, '/') && !str_ends_with($path, '//')) {
+        $path = rtrim($path, '/').'/';
+    }
+
+    $query = array_key_exists('query', $reference) ? '?'.$reference['query'] : '';
+    $fragment = array_key_exists('fragment', $reference) ? '#'.$reference['fragment'] : '';
+    return $origin.$path.$query.$fragment;
+}
+
+function proxy_playlist_uri(string $playlistUrl, string $uri): string {
+    $resolved = resolve_media_redirect($playlistUrl, $uri);
+    if (!supported_media_url($resolved)) {
+        return $uri;
+    }
+
+    $endpoint = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    if (!is_string($endpoint) || $endpoint === '') {
+        $endpoint = $_SERVER['SCRIPT_NAME'] ?? '/play.php';
+    }
+    return $endpoint.'?stream=1&url='.rawurlencode($resolved);
+}
+
+function rewrite_media_playlist(string $playlist, string $playlistUrl): string {
+    $lines = preg_split('/(\r\n|\n|\r)/', $playlist, -1, PREG_SPLIT_DELIM_CAPTURE);
+    if ($lines === false) {
+        return $playlist;
+    }
+
+    foreach ($lines as $index => $line) {
+        if ($index % 2 === 1 || $line === '') {
+            continue;
+        }
+        if (str_starts_with($line, '#')) {
+            $lines[$index] = preg_replace_callback(
+                '/(\bURI\s*=\s*")([^"]+)(")/i',
+                static fn(array $match): string => $match[1].proxy_playlist_uri($playlistUrl, $match[2]).$match[3],
+                $line
+            ) ?? $line;
+        } else {
+            $lines[$index] = proxy_playlist_uri($playlistUrl, trim($line));
+        }
+    }
+    return implode('', $lines);
 }
 
 function send_media_headers(array $headers, int $status, string $url): void {
@@ -104,6 +159,8 @@ function proxy_media(string $url): void {
         $responseHeaders = [];
         $responseStatus = 0;
         $headersSent = false;
+        $playlistBody = '';
+        $isPlaylist = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION)) === 'm3u8';
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => false,
@@ -123,10 +180,16 @@ function proxy_media(string $url): void {
                 }
                 return strlen($line);
             },
-            CURLOPT_WRITEFUNCTION => static function($handle, string $chunk) use (&$responseHeaders, &$headersSent, $url): int {
+            CURLOPT_WRITEFUNCTION => static function($handle, string $chunk) use (&$responseHeaders, &$headersSent, &$playlistBody, &$isPlaylist, $url): int {
                 $status = (int)curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
                 if ($status >= 300 && $status < 400) {
                     return 0;
+                }
+                $contentType = strtolower($responseHeaders['content-type'] ?? '');
+                $isPlaylist = $isPlaylist || str_contains($contentType, 'mpegurl');
+                if ($isPlaylist && $status >= 200 && $status < 300) {
+                    $playlistBody .= $chunk;
+                    return strlen($chunk);
                 }
                 if (!$headersSent) {
                     send_media_headers($responseHeaders, $status, $url);
@@ -142,6 +205,14 @@ function proxy_media(string $url): void {
         $curlError = curl_error($ch);
         $responseStatus = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE) ?: $responseStatus;
         curl_close($ch);
+
+        if ($isPlaylist && $responseStatus >= 200 && $responseStatus < 300 && $success !== false) {
+            unset($responseHeaders['content-length'], $responseHeaders['content-range'], $responseHeaders['accept-ranges']);
+            $responseHeaders['content-type'] = 'application/vnd.apple.mpegurl';
+            send_media_headers($responseHeaders, $responseStatus, $url);
+            echo rewrite_media_playlist($playlistBody, $url);
+            exit;
+        }
 
         if ($responseStatus >= 300 && $responseStatus < 400 && !$headersSent) {
             $location = $responseHeaders['location'] ?? '';
@@ -228,10 +299,10 @@ function proxiedSource(url){
 }
 <?php if($isHls): ?>
 if(video.canPlayType('application/vnd.apple.mpegurl')){
-  video.src=source;
+  video.src=proxiedSource(source);
 }else if(typeof Hls!=='undefined'&&Hls.isSupported()){
   const hls=new Hls();
-  hls.loadSource(source);
+  hls.loadSource(proxiedSource(source));
   hls.attachMedia(video);
   hls.on(Hls.Events.ERROR,(_,data)=>{
     if(data.fatal){
