@@ -321,6 +321,13 @@ if($mediaUrl !== '' || ($_GET['stream'] ?? '') === '1'){
         die('Invalid video URL');
     }
 
+    // Optional fallback source (e.g. a direct MP4) used when HLS fails.
+    $fallbackUrl = $_GET['fb'] ?? '';
+    $fallbackUrl = is_string($fallbackUrl) ? trim($fallbackUrl) : '';
+    if($fallbackUrl === '' || !supported_media_url($fallbackUrl)) $fallbackUrl = '';
+    $fallbackJson = json_encode($fallbackUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    if($fallbackJson === false) $fallbackJson = '""';
+
     $isHls = strtolower(pathinfo($mediaParts['path'] ?? '', PATHINFO_EXTENSION)) === 'm3u8';
     header('Content-Type: text/html; charset=utf-8');
     ?>
@@ -351,15 +358,28 @@ video{display:block;width:100%;max-height:calc(100dvh - 32px);background:#000;bo
 <?php endif; ?>
 <script>
 const source=<?=$sourceJson?>;
+const fallback=<?=$fallbackJson?>;
 const video=document.getElementById('video');
 const error=document.getElementById('error');
+let usedFallback=false;
 function showError(message){error.textContent=message;error.hidden=false;}
-video.addEventListener('error',()=>showError('Unable to load this video. Check your connection and try again.'));
+function clearError(){error.hidden=true;}
+video.addEventListener('error',()=>{
+  if(!usedFallback&&fallback){useFallback();return;}
+  showError('Unable to load this video. Check your connection and try again.');
+});
 function proxiedSource(url){
   const endpoint=new URL(window.location.href);
   endpoint.searchParams.set('stream','1');
   endpoint.searchParams.set('url',url);
   return endpoint.toString();
+}
+function useFallback(){
+  if(usedFallback||!fallback)return;
+  usedFallback=true;
+  clearError();
+  video.src=proxiedSource(fallback);
+  video.play().catch(()=>{});
 }
 <?php if($isHls): ?>
 if(video.canPlayType('application/vnd.apple.mpegurl')){
@@ -371,11 +391,13 @@ if(video.canPlayType('application/vnd.apple.mpegurl')){
   hls.on(Hls.Events.ERROR,(_,data)=>{
     if(data.fatal){
       hls.destroy();
-      showError('Unable to load this video. Check your connection and try again.');
+      if(fallback){useFallback();}
+      else{showError('Unable to load this video. Check your connection and try again.');}
     }
   });
 }else{
-  showError('HLS playback is not supported by this browser.');
+  if(fallback){useFallback();}
+  else{showError('HLS playback is not supported by this browser.');}
 }
 <?php else: ?>
 video.src=proxiedSource(source);

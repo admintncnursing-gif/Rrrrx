@@ -310,21 +310,28 @@ function handle_video(int $vid, int $bid, string $q, int $sid = 0, int $tid = 0)
 
     $d = $result['data'] ?? null;
 
+    // Content-list item always consulted too — it carries the direct MP4
+    // file_link that usually outlives the HLS transcode masters.
+    $item = ($sid && $tid) ? find_content_item($vid, $bid, $sid, $tid) : null;
+
     // Fallback: resolve straight from the topic content list (survives upstream 429s)
-    if (!$d && $sid && $tid) {
-        $d = find_content_item($vid, $bid, $sid, $tid);
+    if (!$d) {
+        $d = $item;
     }
 
-    if (!$d) { json_exit(404, 'Video not found or upstream error'); }
+    if (!$d && !$item) { json_exit(404, 'Video not found or upstream error'); }
+    $d = $d ?: [];
 
     // Cache video detail
-    $cacheFile = DATA_DIR . 'api_' . md5('vid_'.$vid.'_'.$bid) . '.json';
-    if (!empty($d)) @file_put_contents($cacheFile, json_encode($result));
+    if (!empty($result['data'])) {
+        $cacheFile = DATA_DIR . 'api_' . md5('vid_'.$vid.'_'.$bid) . '.json';
+        @file_put_contents($cacheFile, json_encode($result));
+    }
 
     $player = '/player?url=';
 
     // YouTube
-    if (!empty($d['video_id']) && empty($d['download_link']) && empty($d['file_link'])) {
+    if (!empty($d['video_id']) && empty($d['download_link']) && empty($d['file_link']) && empty($item['file_link'])) {
         $yt = strlen($d['video_id']) > 20 ? decrypt_appx($d['video_id']) : $d['video_id'];
         echo json_encode(['ok'=>true,'type'=>'youtube','url'=>'https://www.youtube.com/watch?v='.urlencode($yt)]);
         exit;
@@ -335,38 +342,33 @@ function handle_video(int $vid, int $bid, string $q, int $sid = 0, int $tid = 0)
         return $u;
     };
 
-    // Build playable candidates in preference order: [url, keySuffix]
+    // Build playable candidates. Direct MP4 first (most durable), then HLS.
     $cands = [];
-    if (!empty($d['download_link'])) {
-        $u = $applyQ(decrypt_appx($d['download_link']));
-        if ($u) $cands[] = [$u, stream_key_param($d['video_key'] ?? '')];
-    }
+    $seen  = [];
+    $add = function(string $enc, string $keyEnc = '') use (&$cands, &$seen, $applyQ): void {
+        if ($enc === '') return;
+        $u = $applyQ(decrypt_appx($enc));
+        if ($u === '' || isset($seen[$u])) return;
+        $seen[$u] = true;
+        $cands[] = [$u, stream_key_param($keyEnc)];
+    };
+
+    // MP4 sources (content item + detail payload)
+    $add($item['file_link'] ?? '');
+    $add($d['file_link'] ?? '');
+    $add($d['download_link'] ?? '', $d['video_key'] ?? '');
     foreach (($d['encrypted_links'] ?? []) as $lnk) {
-        if (!empty($lnk['path'])) {
-            $u = $applyQ(decrypt_appx($lnk['path']));
-            if ($u) $cands[] = [$u, stream_key_param($lnk['key'] ?? '')];
-        }
+        $add($lnk['path'] ?? '', $lnk['key'] ?? '');
     }
-    // Direct MP4 file — often the only source still present on the CDN.
-    if (!empty($d['file_link'])) {
-        $u = $applyQ(decrypt_appx($d['file_link']));
-        if ($u) $cands[] = [$u, ''];
-    }
-    $links = $d['download_links'] ?? [];
-    if (is_array($links) && $links) {
+    foreach ([$item['download_links'] ?? [], $d['download_links'] ?? []] as $links) {
+        if (!is_array($links)) continue;
         if ($q !== 'auto') {
             foreach ($links as $lnk) {
-                if (($lnk['quality'] ?? '') === $q && !empty($lnk['path'])) {
-                    $u = $applyQ(decrypt_appx($lnk['path']));
-                    if ($u) $cands[] = [$u, ''];
-                }
+                if (($lnk['quality'] ?? '') === $q) $add($lnk['path'] ?? '');
             }
         }
         foreach ($links as $lnk) {
-            if (!empty($lnk['path'])) {
-                $u = $applyQ(decrypt_appx($lnk['path']));
-                if ($u) $cands[] = [$u, ''];
-            }
+            $add($lnk['path'] ?? '');
         }
     }
 
@@ -378,7 +380,22 @@ function handle_video(int $vid, int $bid, string $q, int $sid = 0, int $tid = 0)
         if (media_reachable($cand[0])) { $chosen = $cand; break; }
     }
 
-    echo json_encode(['ok'=>true,'type'=>'video','url'=>$player.urlencode($chosen[0]).$chosen[1]]);
+    // Pick a different reachable source as a playback fallback (prefer MP4).
+    $fallback = null;
+    foreach ($cands as $cand) {
+        if ($cand[0] === $chosen[0]) continue;
+        if (!media_reachable($cand[0])) continue;
+        $isMp4 = strtolower(pathinfo(parse_url($cand[0], PHP_URL_PATH) ?: '', PATHINFO_EXTENSION)) !== 'm3u8';
+        if ($isMp4) { $fallback = $cand; break; }
+        if ($fallback === null) $fallback = $cand;
+    }
+
+    $url = $player.urlencode($chosen[0]).$chosen[1];
+    if ($fallback !== null) {
+        $url .= '&fb='.urlencode($fallback[0]);
+    }
+
+    echo json_encode(['ok'=>true,'type'=>'video','url'=>$url]);
     exit;
 }
 
@@ -386,24 +403,40 @@ function handle_video(int $vid, int $bid, string $q, int $sid = 0, int $tid = 0)
  * Quick reachability probe so we can skip dead CDN sources.
  */
 function media_reachable(string $url): bool {
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_MAXREDIRS      => 3,
-        CURLOPT_CONNECTTIMEOUT => 3,
-        CURLOPT_TIMEOUT        => 6,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_RANGE          => '0-1',
-        CURLOPT_ENCODING       => '',
-        CURLOPT_HTTPHEADER     => [
-            'User-Agent: Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/124 Mobile Safari/537.36',
-            'Referer: https://www.rozgarapinew.teachx.in/',
-        ],
-    ]);
-    curl_exec($ch);
-    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    $isHls = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION)) === 'm3u8';
+    $headers = [
+        'User-Agent: Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/124 Mobile Safari/537.36',
+        'Referer: https://www.rozgarapinew.teachx.in/',
+    ];
+
+    $probe = function(array $extra) use ($url, $headers): array {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, $extra + [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_TIMEOUT        => 6,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_ENCODING       => '',
+            CURLOPT_HTTPHEADER     => $headers,
+        ]);
+        $body = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        return [$code, $body];
+    };
+
+    if ($isHls) {
+        [$code, $body] = $probe([]);
+        return $code >= 200 && $code < 400 && is_string($body) && str_starts_with(ltrim($body), '#EXTM3U');
+    }
+
+    // Non-playlist: HEAD is cheap. Retry with a 2-byte GET if HEAD is unsupported.
+    [$code] = $probe([CURLOPT_NOBODY => true]);
+    if ($code === 0 || $code === 405 || $code === 501) {
+        [$code] = $probe([CURLOPT_RANGE => '0-1']);
+    }
     return $code >= 200 && $code < 400;
 }
 
