@@ -239,7 +239,7 @@ async function playQ(q){
   closeMod();
   if(!_pendVid){toast('Video nahi chuna!');return;}
   showLoader('VIDEO LOAD HO RAHI HAI…');
-  const r=await rApi('video',{vid:_pendVid,bid:BID,q:q});
+  const r=await rApi('video',{vid:_pendVid,bid:BID,sid:SID,tid:TID,q:q});
   hideLoader();
   if(!r.ok||!r.url){toast('❌ Video nahi mili: '+(r.error||'Unknown error'));return;}
   window.open(r.url,'_blank');
