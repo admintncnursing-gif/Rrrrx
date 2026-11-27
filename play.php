@@ -217,6 +217,8 @@ function proxy_media(string $url): void {
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_TIMEOUT => 120,
             CURLOPT_NOBODY => $method === 'HEAD',
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_HTTPHEADER => $requestHeaders,
             CURLOPT_USERAGENT => 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/124 Mobile Safari/537.36',
             CURLOPT_HEADERFUNCTION => static function($handle, string $line) use (&$responseHeaders, &$responseStatus): int {
