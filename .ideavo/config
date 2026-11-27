@@ -27,7 +27,7 @@
   "runStep": [
     {
       "name": "Run Dev Server",
-      "command": "php -S localhost:4000",
+      "command": "php -S 0.0.0.0:4000 router.php",
       "port": "4000"
     }
   ],

@@ -270,11 +270,12 @@ if($mediaUrl !== '' || ($_GET['stream'] ?? '') === '1'){
 <title>Video Player</title>
 <style>
 *{box-sizing:border-box}
-html,body{width:100%;height:100%;margin:0;background:#08080d;color:#f1f5f9;font-family:system-ui,sans-serif}
+:root{--brand:#6366f1;--brand-2:#8b5cf6;--bg:#070a16}
+html,body{width:100%;height:100%;margin:0;background:var(--bg);color:#f1f5f9;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
 body{display:grid;place-items:center}
-main{width:min(100%,1000px);padding:16px}
-video{display:block;width:100%;max-height:calc(100dvh - 32px);background:#000;border-radius:12px}
-#error{color:#fca5a5;text-align:center;padding:12px}
+main{width:min(100%,900px);padding:16px}
+video{display:block;width:100%;max-height:calc(100dvh - 32px);background:#000;border-radius:16px;box-shadow:0 20px 60px -30px rgba(0,0,0,.9)}
+#error{color:#f87171;text-align:center;padding:14px;font-size:13px}
 </style>
 </head>
 <body>
